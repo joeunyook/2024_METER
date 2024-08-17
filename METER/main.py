@@ -97,13 +97,14 @@ print('init_data:', init_data.shape)
 
 torch.set_grad_enabled(True) #globally enable gradient computation
 #when the model is trained using train_autoencoder function
-if args.mode == 'static':
+if args.mode == 'static': #some params get ignored in train_autoencoder function at METER.py
     static_encoder_weight, static_decoder_weight = model.train_autoencoder(Variable(init_data).to(device), 
-                                                                            epochs=args.epochs, batch_size=trans_batch_size, 
+                                                                            epochs=args.epochs, 
                                                                             mode=args.mode)
+    
 elif args.mode == 'dynamic':
     encoder_weight,decoder_weight = model.train_autoencoder(Variable(init_data).to(device), epochs=args.epochs, 
-                                                            batch_size=trans_batch_size, mode=args.mode)
+                                                         mode=args.mode)
 elif args.mode == 'hybrid':
     static_encoder_weight, static_decoder_weight = model.train_autoencoder(Variable(init_data).to(device), 
                                                                             epochs=args.epochs, mode='static')
@@ -162,10 +163,10 @@ for i, data in enumerate(data_loader):
                 torch.set_grad_enabled(True)
                 current_data = numeric_infer[i-window_size:i]  
                 static_encoder_weight, static_decoder_weight = model.train_autoencoder(Variable(current_data).to(device), 
-                                                                                    epochs=200, batch_size=trans_batch_size, 
+                                                                                    epochs=200, 
                                                                                     mode='static')
                 encoder_weight_hybrid, decoder_weight_hybrid = model.train_autoencoder(Variable(current_data).to(device), 
-                                                                      epochs=500, batch_size=trans_batch_size, 
+                                                                      epochs=500, 
                                                                       mode='hybrid+edl',
                                     static_encoder_weight=static_encoder_weight, static_decoder_weight=static_decoder_weight,
                                     thres_rate = args.thres_rate)

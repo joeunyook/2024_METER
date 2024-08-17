@@ -35,11 +35,13 @@ class METER(nn.Module):  #nn.Module is a base class for all neural network modul
         self.decoder_layer = decoder_layer
         self.hyperenc_layer = hyperenc_layer
         self.hyperdec_layer = hyperdec_layer
+        out_fn = torch.nn.Sigmoid()
+
         '''Static'''
         self.encoder_static = MLP(self.in_dim, self.out_dim, hidden_layers=[self.encoder_layer,self.encoder_layer], 
-                                  no_weights=False)   #static autoencoder using a MLP(Multilayer perceptron)  
+                                  no_weights=False,out_fn=out_fn)   #static autoencoder using a MLP(Multilayer perceptron)  
         self.decoder_static = MLP(self.out_dim, self.in_dim, hidden_layers=[self.decoder_layer,self.decoder_layer], 
-                                  no_weights=False) #static decoder using MLP 
+                                  no_weights=False,out_fn=out_fn) #static decoder using MLP 
         '''dynamic'''
         self.encoder = MLP(self.in_dim, self.out_dim, hidden_layers=[self.encoder_layer,self.encoder_layer], 
                             no_weights=True)    #dynamic encoder and decoder with the no_weights parameter set to true
@@ -99,7 +101,11 @@ class METER(nn.Module):  #nn.Module is a base class for all neural network modul
                 output,_ = self.decoder.forward(z,weights=decoder_weight)  #Forward pass through the encoder and decoder with the generated weights
 
             elif mode == 'static':
+                result = self.encoder_static.forward(new + 0.001*torch.randn_like(new).to(self.device))
+                
                 z,static_encoder_weight = self.encoder_static.forward(new + 0.001*torch.randn_like(new).to(self.device))
+                
+                
                 output,static_decoder_weight = self.decoder_static.forward(z) #FOrward pass through the static encoder and decoder
 
             elif mode == 'hybrid':
@@ -273,3 +279,7 @@ class METER(nn.Module):  #nn.Module is a base class for all neural network modul
             return score ,self.count, expected_p, None, data_uncertainty , distributional_uncertainty,use_dynamic
         else:
             return score ,self.count, expected_p, expected_p[0][0].round(), data_uncertainty , distributional_uncertainty,use_dynamic
+        
+        
+        
+        
